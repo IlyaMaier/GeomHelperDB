@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.example.geomhelper.GeomHelperApplication.statement;
 
@@ -73,6 +75,32 @@ public class Controller {
             String f = "update users set %s = %s where id = %s";
             statement.execute(String.format(f, param, value, id));
             return "1";
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "0";
+    }
+
+    @RequestMapping("/leaders/get")
+    @ResponseBody
+    String getLeaders() {
+        try {
+            String f = "select * from users order by experience desc limit 10";
+            ResultSet resultSet = statement.executeQuery(f);
+
+            List<User> users = new ArrayList<>();
+
+            while (resultSet.next()) {
+                User user = new User();
+                user.setId(resultSet.getInt("id"));
+                user.setName(resultSet.getString("name"));
+                user.setExperience(resultSet.getInt("experience"));
+                user.setCourses(resultSet.getString("courses"));
+                users.add(user);
+            }
+
+            Gson gson = new Gson();
+            return gson.toJson(users, List.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
