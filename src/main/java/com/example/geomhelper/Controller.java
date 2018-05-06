@@ -13,22 +13,22 @@ import static com.example.geomhelper.GeomHelperApplication.statement;
 @org.springframework.stereotype.Controller
 public class Controller {
 
-    @RequestMapping("/post")
+    @RequestMapping(value = "/post", method = RequestMethod.POST)
     @ResponseBody
     String post(@RequestParam("email") String email,
                 @RequestParam("password") String password,
                 @RequestParam("name") String name) {
         try {
-            String t = "select * from users where email = " + email;
-            ResultSet resultSet = statement.executeQuery(t);
+            String t = "select * from users where email = '%s'";
+            ResultSet resultSet = statement.executeQuery(String.format(t, email));
             if (resultSet.next())
                 return "2";
 
-            String f = "insert into users (email,password,name,experience) values(%s,'%s','%s',0)";
-            statement.execute(String.format(f, email, password, name));
+            String f = "insert into users (email,password,name,experience) values('%s','%s','%s',0)";
+            statement.execute(String.format(f, email, password.hashCode(), name));
 
-            String r = "select * from users where email = %s and password = %s";
-            ResultSet resultSet1 = statement.executeQuery(String.format(r, email, password));
+            String r = "select * from users where email = '%s' and password = '%s'";
+            ResultSet resultSet1 = statement.executeQuery(String.format(r, email, password.hashCode()));
             if (resultSet1.next())
                 return resultSet1.getString("id");
         } catch (SQLException e) {
@@ -37,18 +37,18 @@ public class Controller {
         return "0";
     }
 
-    @RequestMapping("/get")
+    @RequestMapping(value = "/get", method = RequestMethod.POST)
     @ResponseBody
     String get(@RequestParam("email") String email,
                @RequestParam("password") String password) {
         try {
-            String f1 = "select * from users where email = %s";
+            String f1 = "select * from users where email = '%s'";
             ResultSet resultSet1 = statement.executeQuery(String.format(f1, email));
             if (!resultSet1.next())
                 return "2";
 
-            String f = "select * from users where email = %s and password = %s";
-            ResultSet resultSet = statement.executeQuery(String.format(f, email, password));
+            String f = "select * from users where email = '%s' and password = '%s'";
+            ResultSet resultSet = statement.executeQuery(String.format(f, email, password.hashCode()));
 
             User user = new User();
             if (resultSet.next()) {
@@ -66,13 +66,13 @@ public class Controller {
         return "0";
     }
 
-    @RequestMapping("/put")
+    @RequestMapping(value = "/put", method = RequestMethod.PUT)
     @ResponseBody
     String put(@RequestParam("id") String id,
                @RequestParam("param") String param,
                @RequestParam("value") String value) {
         try {
-            String f = "update users set %s = %s where id = %s";
+            String f = "update users set %s = '%s' where id = %s";
             statement.execute(String.format(f, param, value, id));
             return "1";
         } catch (SQLException e) {
@@ -81,11 +81,11 @@ public class Controller {
         return "0";
     }
 
-    @RequestMapping("/leaders/get")
+    @RequestMapping("/leaders")
     @ResponseBody
     String getLeaders() {
         try {
-            String f = "select * from users order by experience desc limit 10";
+            String f = "select *  from users order by experience desc limit 10";
             ResultSet resultSet = statement.executeQuery(f);
 
             List<User> users = new ArrayList<>();
