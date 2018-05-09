@@ -101,14 +101,23 @@ public class Controller {
                @RequestParam("param") String param,
                @RequestParam("value") String value) {
         try {
-            String f = "update users set %s = '%s' where id = %s";
+            if (param.equals("experience")) {
+                String f = "update users set %s = %s where id = %s";
 
-            PreparedStatement ps = connection.
-                    prepareStatement(String.format(f, param, value, id));
+                PreparedStatement ps = connection.
+                        prepareStatement(String.format(f, param, value, id));
+                ps.execute();
 
-            ps.execute();
+                return "1";
+            } else {
+                String f = "update users set %s = '%s' where id = %s";
 
-            return "1";
+                PreparedStatement ps = connection.
+                        prepareStatement(String.format(f, param, value, id));
+                ps.execute();
+
+                return "1";
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
