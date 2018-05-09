@@ -10,7 +10,7 @@ import java.sql.*;
 public class GeomHelperApplication {
 
     public static Statement statement;
-
+    public static Connection connection;
     private static final String URL = "jdbc:mysql://localhost:3306/geomhelper";
     private static final String NAME = "root";
     private static final String PASS = "root";
@@ -26,7 +26,7 @@ public class GeomHelperApplication {
         }
 
         try {
-            Connection connection = DriverManager.getConnection(URL,NAME,PASS);
+            connection = DriverManager.getConnection(URL,NAME,PASS);
             statement = connection.createStatement();
 
         } catch (SQLException e) {

@@ -3,52 +3,81 @@ package com.example.geomhelper;
 import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static com.example.geomhelper.GeomHelperApplication.connection;
 import static com.example.geomhelper.GeomHelperApplication.statement;
 
 @org.springframework.stereotype.Controller
 public class Controller {
 
-    @RequestMapping(value = "/post", method = RequestMethod.POST)
+    @RequestMapping(value = "/signUp", method = RequestMethod.POST)
     @ResponseBody
     String post(@RequestParam("email") String email,
                 @RequestParam("password") String password,
                 @RequestParam("name") String name) {
         try {
-            String t = "select * from users where email = '%s'";
-            ResultSet resultSet = statement.executeQuery(String.format(t, email));
-            if (resultSet.next())
+            PreparedStatement psCheck = connection.
+                    prepareStatement("select * from users where email = ?");
+
+            psCheck.setString(1, email);
+
+            ResultSet result = psCheck.executeQuery();
+            if (result.next())
                 return "2";
 
-            String f = "insert into users (email,password,name,experience) values('%s','%s','%s',0)";
-            statement.execute(String.format(f, email, password.hashCode(), name));
+            PreparedStatement psSignUp = connection.
+                    prepareStatement(
+                            "insert into users (email,password,name,experience) values(?,?,?,0)");
 
-            String r = "select * from users where email = '%s' and password = '%s'";
-            ResultSet resultSet1 = statement.executeQuery(String.format(r, email, password.hashCode()));
-            if (resultSet1.next())
-                return resultSet1.getString("id");
+            psSignUp.setString(1, email);
+            psSignUp.setString(2, password);
+            psSignUp.setString(3, name);
+            psSignUp.execute();
+
+            PreparedStatement psCreated = connection.
+                    prepareStatement("select *  from users where email = ? and password = ?");
+
+            psCreated.setString(1, email);
+            psCreated.setString(2, password);
+
+            ResultSet resultCreated = psCreated.executeQuery();
+
+            if (resultCreated.next())
+                return resultCreated.getString("id");
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return "0";
     }
 
-    @RequestMapping(value = "/get", method = RequestMethod.POST)
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ResponseBody
     String get(@RequestParam("email") String email,
                @RequestParam("password") String password) {
         try {
-            String f1 = "select * from users where email = '%s'";
-            ResultSet resultSet1 = statement.executeQuery(String.format(f1, email));
-            if (!resultSet1.next())
+            PreparedStatement psCheck = connection.
+                    prepareStatement("select * from users where email = ?");
+
+            psCheck.setString(1, email);
+
+            ResultSet resultCheck = psCheck.executeQuery();
+
+            if (!resultCheck.next())
                 return "2";
 
-            String f = "select * from users where email = '%s' and password = '%s'";
-            ResultSet resultSet = statement.executeQuery(String.format(f, email, password.hashCode()));
+            PreparedStatement ps = connection.
+                    prepareStatement("select *  from users where email = ? and password = ?");
+
+            ps.setString(1, email);
+            ps.setString(2, password);
+
+            ResultSet resultSet = ps.executeQuery();
 
             User user = new User();
             if (resultSet.next()) {
@@ -66,14 +95,19 @@ public class Controller {
         return "0";
     }
 
-    @RequestMapping(value = "/put", method = RequestMethod.PUT)
+    @RequestMapping(value = "/updateUser", method = RequestMethod.PUT)
     @ResponseBody
     String put(@RequestParam("id") String id,
                @RequestParam("param") String param,
                @RequestParam("value") String value) {
         try {
             String f = "update users set %s = '%s' where id = %s";
-            statement.execute(String.format(f, param, value, id));
+
+            PreparedStatement ps = connection.
+                    prepareStatement(String.format(f, param, value, id));
+
+            ps.execute();
+
             return "1";
         } catch (SQLException e) {
             e.printStackTrace();
@@ -81,12 +115,14 @@ public class Controller {
         return "0";
     }
 
-    @RequestMapping("/leaders")
+    @RequestMapping("/getLeaders")
     @ResponseBody
     String getLeaders() {
         try {
-            String f = "select *  from users order by experience desc limit 10";
-            ResultSet resultSet = statement.executeQuery(f);
+            PreparedStatement ps = connection.
+                    prepareStatement("select *  from users order by experience desc limit 10");
+
+            ResultSet resultSet = ps.executeQuery();
 
             List<User> users = new ArrayList<>();
 
@@ -101,6 +137,46 @@ public class Controller {
 
             Gson gson = new Gson();
             return gson.toJson(users, List.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "0";
+    }
+
+    @RequestMapping(value = "/setUserImage", method = RequestMethod.POST)
+    @ResponseBody
+    String image(@RequestParam("id") String id, @RequestParam("image") byte[] image) {
+        System.out.println(Arrays.toString(image));
+        String i = Arrays.toString(image).replace("[", "");
+        String replace = i.replace("]", "");
+        String f = "update users set image = '%s' where id = %s";
+        try {
+            PreparedStatement ps = connection.
+                    prepareStatement("update users set image = ? where id = ?");
+
+            ps.setString(1, replace);
+            ps.setString(2, id);
+
+            ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return "0";
+    }
+
+    @RequestMapping(value = "/getImage", method = RequestMethod.GET)
+    @ResponseBody
+    String getimage(@RequestParam("id") String id) {
+        try {
+            PreparedStatement ps = connection.
+                    prepareStatement("select image from users where id = ?");
+
+            ps.setString(1, id);
+
+            ResultSet resultSet = ps.executeQuery();
+            if (resultSet.next())
+                return resultSet.getString("image").replace(" ", "");
         } catch (SQLException e) {
             e.printStackTrace();
         }
