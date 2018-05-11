@@ -1,7 +1,11 @@
 package com.example.geomhelper;
 
 import com.google.gson.Gson;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.example.geomhelper.GeomHelperApplication.connection;
-import static com.example.geomhelper.GeomHelperApplication.statement;
 
 @org.springframework.stereotype.Controller
 public class Controller {
@@ -152,28 +155,6 @@ public class Controller {
         return "0";
     }
 
-    @RequestMapping(value = "/setUserImage", method = RequestMethod.POST)
-    @ResponseBody
-    String image(@RequestParam("id") String id, @RequestParam("image") byte[] image) {
-        System.out.println(Arrays.toString(image));
-        String i = Arrays.toString(image).replace("[", "");
-        String replace = i.replace("]", "");
-        String f = "update users set image = '%s' where id = %s";
-        try {
-            PreparedStatement ps = connection.
-                    prepareStatement("update users set image = ? where id = ?");
-
-            ps.setString(1, replace);
-            ps.setString(2, id);
-
-            ps.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return "0";
-    }
-
     @RequestMapping(value = "/getImage", method = RequestMethod.GET)
     @ResponseBody
     String getimage(@RequestParam("id") String id) {
@@ -192,4 +173,34 @@ public class Controller {
         return "0";
     }
 
+    @RequestMapping(value = "/setUserImage", method = RequestMethod.POST)
+    public @ResponseBody
+    String handleFileUpload(@RequestParam("id") String id,
+                            @RequestParam("file") MultipartFile file) {
+        if (!file.isEmpty()) {
+            try {
+                byte[] image = file.getBytes();
+                String i = Arrays.toString(image).replace("[", "");
+                String replace = i.replace("]", "");
+                String f = "update users set image = '%s' where id = %s";
+                try {
+                    PreparedStatement ps = connection.
+                            prepareStatement("update users set image = ? where id = ?");
+
+                    ps.setString(1, replace);
+                    ps.setString(2, id);
+
+                    ps.execute();
+                    return "1";
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return "2";
+                }
+            } catch (Exception e) {
+                return "2";
+            }
+        } else {
+            return "0";
+        }
+    }
 }

@@ -2,10 +2,19 @@ package com.example.geomhelper;
 
 import com.mysql.fabric.jdbc.FabricMySQLDriver;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.MultipartConfigElement;
 import java.sql.*;
 
+@Configuration
+@ComponentScan
+@EnableAutoConfiguration
 @SpringBootApplication
 public class GeomHelperApplication {
 
@@ -32,5 +41,13 @@ public class GeomHelperApplication {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    @Bean
+    MultipartConfigElement multipartConfigElement() {
+        MultipartConfigFactory factory = new MultipartConfigFactory();
+        factory.setMaxFileSize("10MB");
+        factory.setMaxRequestSize("10MB");
+        return factory.createMultipartConfig();
     }
 }
