@@ -6,6 +6,8 @@ public class User  {
     String name;
     int experience;
     String courses;
+    String tests;
+    int age;
 
     public User() {
 
@@ -41,6 +43,14 @@ public class User  {
 
     public void setCourses(String courses) {
         this.courses = courses;
+    }
+
+    public String getTests() {
+        return tests;
+    }
+
+    public void setTests(String tests) {
+        this.tests = tests;
     }
 
 }
