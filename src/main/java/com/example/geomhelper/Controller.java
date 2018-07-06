@@ -5,13 +5,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.example.geomhelper.GeomHelperApplication.connection;
@@ -89,10 +87,11 @@ public class Controller {
 
     @RequestMapping("/getLeaders")
     @ResponseBody
-    String getLeaders() {
+    String getLeaders(@RequestParam("desc") int desc) {
         try {
+            String f = "select *  from users order by experience desc limit %s";
             PreparedStatement ps = connection.
-                    prepareStatement("select *  from users order by experience desc limit 10");
+                    prepareStatement(String.format(f, desc));
 
             ResultSet resultSet = ps.executeQuery();
 
@@ -113,55 +112,6 @@ public class Controller {
             e.printStackTrace();
         }
         return "0";
-    }
-
-    @RequestMapping(value = "/getImage", method = RequestMethod.GET)
-    @ResponseBody
-    String getimage(@RequestParam("id") String id) {
-        try {
-            PreparedStatement ps = connection.
-                    prepareStatement("select image from users where id = ?");
-
-            ps.setString(1, id);
-
-            ResultSet resultSet = ps.executeQuery();
-            if (resultSet.next())
-                return resultSet.getString("image").replace(" ", "");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return "0";
-    }
-
-    @RequestMapping(value = "/setUserImage", method = RequestMethod.POST)
-    public @ResponseBody
-    String handleFileUpload(@RequestParam("id") String id,
-                            @RequestParam("file") MultipartFile file) {
-        if (!file.isEmpty()) {
-            try {
-                byte[] image = file.getBytes();
-                String i = Arrays.toString(image).replace("[", "");
-                String replace = i.replace("]", "");
-                String f = "update users set image = '%s' where id = %s";
-                try {
-                    PreparedStatement ps = connection.
-                            prepareStatement("update users set image = ? where id = ?");
-
-                    ps.setString(1, replace);
-                    ps.setString(2, id);
-
-                    ps.execute();
-                    return "1";
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    return "2";
-                }
-            } catch (Exception e) {
-                return "2";
-            }
-        } else {
-            return "0";
-        }
     }
 
     @RequestMapping(value = "/changeEmail", method = RequestMethod.PUT)
@@ -302,6 +252,7 @@ public class Controller {
                 user.setExperience(resultSet.getInt("experience"));
                 user.setCourses(resultSet.getString("courses"));
                 user.setTests(resultSet.getString("tests"));
+                user.setAchievements(resultSet.getString("achievements"));
             } else return "3";
 
             Gson gson = new Gson();

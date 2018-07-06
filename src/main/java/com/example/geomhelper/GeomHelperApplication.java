@@ -20,9 +20,9 @@ public class GeomHelperApplication {
 
     public static Statement statement;
     public static Connection connection;
-    private static final String URL = "jdbc:mysql://localhost:3306/geomhelper?useUnicode=yes&characterEncoding=UTF-8";
+    private static final String URL = "jdbc:mysql://localhost:3306/users?useUnicode=yes&characterEncoding=UTF-8";
     private static final String NAME = "root";
-    private static final String PASS = "root";
+    private static final String PASS = "%59KqPDnx33";
 
     public static void main(String[] args) {
         SpringApplication.run(GeomHelperApplication.class, args);

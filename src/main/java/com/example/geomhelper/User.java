@@ -7,7 +7,7 @@ public class User  {
     int experience;
     String courses;
     String tests;
-    int age;
+    String achievements;
 
     public User() {
 
@@ -53,4 +53,11 @@ public class User  {
         this.tests = tests;
     }
 
+    public String getAchievements() {
+        return achievements;
+    }
+
+    public void setAchievements(String achievements) {
+        this.achievements = achievements;
+    }
 }
